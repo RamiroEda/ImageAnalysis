@@ -1,5 +1,9 @@
 package gui
 
+import filters.EscalaDeGrises
+import filters.Filtro
+import filters.Negativo
+import javafx.beans.property.StringProperty
 import javafx.scene.Parent
 import javafx.scene.image.Image
 import open.open
@@ -10,8 +14,11 @@ import org.jfree.data.statistics.HistogramType
 import tornadofx.*
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.util.logging.Filter
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.reflect.KClass
+import kotlin.reflect.full.primaryConstructor
 
 fun main() = launch<MainGUI>()
 
@@ -21,7 +28,15 @@ class MainView : View(){
     override val root = vbox{
         button ("Abrir Archivo"){
             setOnAction {
-                find<ImageViewer>(ImageScope(open()?.toImage(), true)).openWindow(owner = null)
+                find<ImageViewer>(
+                    ImageScope(open()?.toImage(),
+                        true,
+                        arrayOf(
+                            EscalaDeGrises::class,
+                            Negativo::class
+                        )
+                    )
+                ).openWindow(owner = null, resizable = false)
             }
         }
         //find<ImageViewer>(ImageScope(makeCircle(100).toImage())).openWindow(owner = null)
@@ -41,6 +56,8 @@ class MainView : View(){
 
         return bufferedImage
     }
+
+
 }
 
 class ImageViewer : Fragment(){
@@ -55,16 +72,20 @@ class ImageViewer : Fragment(){
         if(scope.withHistogram){
             showHistogram()
         }
+        for (filter in scope.filters){
+            find<ImageViewer>(ImageScope((filter.primaryConstructor?.call(scope.image!!.toBufferedImage()) as Filtro).apply().toImage())).openWindow(owner = null, resizable = false)
+        }
     }
 
     private fun showHistogram(){
        if(scope.image != null){
-           Histogram(scope.image.toBufferedImage()).show()
+           Histogram(scope.image.toBufferedImage(), 0b1111).show()
        }
     }
 }
 
 class ImageScope (
     val image: Image?,
-    val withHistogram : Boolean = false
+    val withHistogram : Boolean = false,
+    val filters : Array<KClass<*>> = arrayOf()
 ) : Scope()
