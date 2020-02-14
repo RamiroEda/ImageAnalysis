@@ -6,7 +6,6 @@ import org.jfree.chart.plot.PlotOrientation
 import org.jfree.data.xy.XYSeries
 import org.jfree.data.xy.XYSeriesCollection
 import java.awt.Color
-import java.awt.Paint
 import java.awt.image.BufferedImage
 
 class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int, private val isSeparated : Boolean = false) {
@@ -112,7 +111,11 @@ class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int,
         var channelCount = 0
         if(channelVisibilityFlags and 0b0100 == 0b100){
             val redCollection = XYSeriesCollection()
-            redCollection.addSeries(dataset.getSeries(channelCount))
+            val series = XYSeries("Red")
+            for(i in 0 until dataset.getSeries(channelCount).itemCount){
+                series.add(dataset.getSeries(channelCount).getDataItem(i))
+            }
+            redCollection.addSeries(series)
             val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
             graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(255,0,0))
             channelCount++
@@ -121,8 +124,12 @@ class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int,
             chart.isVisible = true
         }
         if(channelVisibilityFlags and 0b10 == 0b10) {
-            val redCollection = XYSeriesCollection()
-            redCollection.addSeries(dataset.getSeries(channelCount))
+            val greenCollection = XYSeriesCollection()
+            val series = XYSeries("Green")
+            for(i in 0 until dataset.getSeries(channelCount).itemCount){
+                series.add(dataset.getSeries(channelCount).getDataItem(i))
+            }
+            greenCollection.addSeries(series)
             val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
             graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,255,0))
             channelCount++
@@ -131,8 +138,12 @@ class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int,
             chart.isVisible = true
         }
         if(channelVisibilityFlags and 0b01 == 0b01) {
-            val redCollection = XYSeriesCollection()
-            redCollection.addSeries(dataset.getSeries(channelCount))
+            val blueCollection = XYSeriesCollection()
+            val series = XYSeries("Blue")
+            for(i in 0 until dataset.getSeries(channelCount).itemCount){
+                series.add(dataset.getSeries(channelCount).getDataItem(i))
+            }
+            blueCollection.addSeries(series)
             val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
             graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,255))
             channelCount++
@@ -141,8 +152,12 @@ class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int,
             chart.isVisible = true
         }
         if(channelVisibilityFlags and 0b01000 == 0b1000) {
-            val redCollection = XYSeriesCollection()
-            redCollection.addSeries(dataset.getSeries(channelCount))
+            val grey = XYSeriesCollection()
+            val series = XYSeries("Brightness")
+            for(i in 0 until dataset.getSeries(channelCount).itemCount){
+                series.add(dataset.getSeries(channelCount).getDataItem(i))
+            }
+            grey.addSeries(series)
             val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
             graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,0))
             val chart = ChartFrame("Frecuencias", graph)

@@ -1,20 +1,12 @@
 package gui
 
-import filters.EscalaDeGrises
-import filters.Filtro
-import filters.Negativo
-import javafx.beans.property.StringProperty
-import javafx.scene.Parent
+import filters.*
 import javafx.scene.image.Image
 import open.open
 import open.toBufferedImage
 import open.toImage
-import org.jfree.data.statistics.HistogramDataset
-import org.jfree.data.statistics.HistogramType
 import tornadofx.*
-import java.awt.Color
 import java.awt.image.BufferedImage
-import java.util.logging.Filter
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.reflect.KClass
@@ -32,14 +24,12 @@ class MainView : View(){
                     ImageScope(open()?.toImage(),
                         true,
                         arrayOf(
-                            EscalaDeGrises::class,
-                            Negativo::class
+                            Segmentacion::class
                         )
                     )
                 ).openWindow(owner = null, resizable = false)
             }
         }
-        //find<ImageViewer>(ImageScope(makeCircle(100).toImage())).openWindow(owner = null)
     }
 
     private fun makeCircle(radio : Int) : BufferedImage{
@@ -68,24 +58,44 @@ class ImageViewer : Fragment(){
             fitWidth = 800.0
             fitHeight = 600.0
             isPreserveRatio = true
-        }.image = scope.image
+            if(scope.isFilter){
+                scope.filter!!.onRefresh{
+                    this.image = it.toImage()
+                }
+            }
+        }.image = if (scope.isFilter){
+            scope.image = scope.filter!!.apply().toImage()
+            scope.image
+        }else{
+            scope.image
+        }
+        if(scope.isFilter){
+            this@ImageViewer.title = scope.filter!!.title
+            this.add(scope.filter.layout)
+        }
         if(scope.withHistogram){
             showHistogram()
         }
         for (filter in scope.filters){
-            find<ImageViewer>(ImageScope((filter.primaryConstructor?.call(scope.image!!.toBufferedImage()) as Filtro).apply().toImage())).openWindow(owner = null, resizable = false)
+            find<ImageViewer>(ImageScope(
+                isFilter = true,
+                filter = filter.primaryConstructor?.call(scope.image!!.toBufferedImage()) as Filtro,
+                withHistogram = true
+            )).openWindow(owner = null, resizable = false)
         }
     }
 
     private fun showHistogram(){
-       if(scope.image != null){
-           Histogram(scope.image.toBufferedImage(), 0b1111).show()
+       if(scope.image is Image){
+           Histogram(scope.image!!.toBufferedImage(), 0b1111).show()
        }
     }
 }
 
 class ImageScope (
-    val image: Image?,
+    var image: Image? = null,
     val withHistogram : Boolean = false,
-    val filters : Array<KClass<*>> = arrayOf()
+    val filters : Array<KClass<*>> = arrayOf(),
+    val isFilter : Boolean = false,
+    val filter : Filtro? = null
 ) : Scope()
