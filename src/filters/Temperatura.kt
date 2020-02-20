@@ -2,7 +2,9 @@ package filters
 
 import getColorChannels
 import javafx.scene.control.Slider
+import javafx.scene.control.TextField
 import toIntColor
+import tornadofx.Field
 import tornadofx.add
 import java.awt.image.BufferedImage
 
@@ -12,8 +14,13 @@ class Temperatura(val image: BufferedImage) : Filtro(image) {
 
     init {
         val slider = Slider(-255.0, 255.0, 0.0)
-        slider.valueProperty().addListener { _, _, newValue ->
-            this.temperature = newValue.toInt()
+
+        slider.isShowTickMarks = true
+        slider.isShowTickLabels = true
+
+        slider.valueProperty().addListener { _, _, _ ->
+            this.temperature = slider.value.toInt()
+
             refresh(this.apply())
         }
         this.layout.add(slider)

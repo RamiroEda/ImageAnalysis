@@ -1,18 +1,23 @@
 package gui
 
-import org.jfree.chart.ChartFactory
-import org.jfree.chart.ChartFrame
-import org.jfree.chart.plot.PlotOrientation
-import org.jfree.data.xy.XYSeries
-import org.jfree.data.xy.XYSeriesCollection
-import java.awt.Color
+import javafx.scene.chart.LineChart
+import javafx.scene.chart.NumberAxis
+import javafx.scene.chart.XYChart
 import java.awt.image.BufferedImage
 
-class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int, private val isSeparated : Boolean = false) {
-    private val dataset = XYSeriesCollection()
+class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int, title: String) {
+    val chart = LineChart<Number, Number>(NumberAxis(), NumberAxis())
 
     init {
-        val red =IntArray(256)
+        chart.title = "Histograma de Frecuencias de $title"
+        chart.createSymbols = false
+        chart.animated = false
+        initDataset(image)
+    }
+
+    private fun initDataset(image: BufferedImage){
+        this.chart.data.clear()
+        val red = IntArray(256)
         val green = IntArray(256)
         val blue = IntArray(256)
         val gray = IntArray(256)
@@ -36,135 +41,53 @@ class Histogram (image: BufferedImage, private val channelVisibilityFlags : Int,
         }
 
         if(channelVisibilityFlags and 0b0100 == 0b100){
-            val redSeries = XYSeries("Red")
+            val redSeries = XYChart.Series<Number, Number>()
+            redSeries.name = "Red"
 
-            for((x, y) in red.withIndex()){
-                redSeries.add(x, y)
-            }
+            redSeries.data.addAll(red.mapIndexed { index, el ->
+                XYChart.Data<Number, Number>(index, el)
+            })
 
-            dataset.addSeries(redSeries)
+            chart.data.add(redSeries)
         }
-        if(channelVisibilityFlags and 0b10 == 0b10) {
-            val greenSeries = XYSeries("Green")
 
-            for((x, y) in green.withIndex()){
-                greenSeries.add(x, y)
-            }
 
-            dataset.addSeries(greenSeries)
-        }
-        if(channelVisibilityFlags and 0b01 == 0b01) {
-            val blueSeries = XYSeries("Blue")
-
-            for((x, y) in blue.withIndex()){
-                blueSeries.add(x, y)
-            }
-
-            dataset.addSeries(blueSeries)
-        }
         if(channelVisibilityFlags and 0b01000 == 0b1000) {
-            val graySeries = XYSeries("Brightness")
+            val graySeries = XYChart.Series<Number, Number>()
+            graySeries.name = "Gray"
 
-            for((x, y) in gray.withIndex()){
-                graySeries.add(x, y)
-            }
+            graySeries.data.addAll(gray.mapIndexed { index, el ->
+                XYChart.Data<Number, Number>(index, el)
+            })
 
-            dataset.addSeries(graySeries)
+            chart.data.add(graySeries)
+        }
+
+        if(channelVisibilityFlags and 0b10 == 0b10) {
+            val greenSeries =XYChart.Series<Number, Number>()
+            greenSeries.name = "Green"
+
+            greenSeries.data.addAll(green.mapIndexed { index, el ->
+                XYChart.Data<Number, Number>(index, el)
+            })
+
+            chart.data.add(greenSeries)
+        }
+
+        if(channelVisibilityFlags and 0b01 == 0b01) {
+            val blueSeries = XYChart.Series<Number, Number>()
+            blueSeries.name = "Blue"
+
+            blueSeries.data.addAll(blue.mapIndexed { index, el ->
+                XYChart.Data<Number, Number>(index, el)
+            })
+
+            chart.data.add(blueSeries)
         }
     }
 
-    fun show(){
-        if(isSeparated){
-            showMultiple()
-        }else{
-            showSingle()
-        }
-    }
-
-    private fun showSingle(){
-        val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
-
-        var channelCount = 0
-
-        if(channelVisibilityFlags and 0b0100 == 0b100){
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(255,0,0))
-            channelCount++
-        }
-        if(channelVisibilityFlags and 0b10 == 0b10) {
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,255,0))
-            channelCount++
-        }
-        if(channelVisibilityFlags and 0b01 == 0b01) {
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,255))
-            channelCount++
-        }
-        if(channelVisibilityFlags and 0b01000 == 0b1000) {
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,0))
-        }
-
-        val chart = ChartFrame("Frecuencias", graph)
-        chart.pack()
-        chart.isVisible = true
-    }
-
-    private fun showMultiple(){
-        var channelCount = 0
-        if(channelVisibilityFlags and 0b0100 == 0b100){
-            val redCollection = XYSeriesCollection()
-            val series = XYSeries("Red")
-            for(i in 0 until dataset.getSeries(channelCount).itemCount){
-                series.add(dataset.getSeries(channelCount).getDataItem(i))
-            }
-            redCollection.addSeries(series)
-            val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(255,0,0))
-            channelCount++
-            val chart = ChartFrame("Frecuencias", graph)
-            chart.pack()
-            chart.isVisible = true
-        }
-        if(channelVisibilityFlags and 0b10 == 0b10) {
-            val greenCollection = XYSeriesCollection()
-            val series = XYSeries("Green")
-            for(i in 0 until dataset.getSeries(channelCount).itemCount){
-                series.add(dataset.getSeries(channelCount).getDataItem(i))
-            }
-            greenCollection.addSeries(series)
-            val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,255,0))
-            channelCount++
-            val chart = ChartFrame("Frecuencias", graph)
-            chart.pack()
-            chart.isVisible = true
-        }
-        if(channelVisibilityFlags and 0b01 == 0b01) {
-            val blueCollection = XYSeriesCollection()
-            val series = XYSeries("Blue")
-            for(i in 0 until dataset.getSeries(channelCount).itemCount){
-                series.add(dataset.getSeries(channelCount).getDataItem(i))
-            }
-            blueCollection.addSeries(series)
-            val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,255))
-            channelCount++
-            val chart = ChartFrame("Frecuencias", graph)
-            chart.pack()
-            chart.isVisible = true
-        }
-        if(channelVisibilityFlags and 0b01000 == 0b1000) {
-            val grey = XYSeriesCollection()
-            val series = XYSeries("Brightness")
-            for(i in 0 until dataset.getSeries(channelCount).itemCount){
-                series.add(dataset.getSeries(channelCount).getDataItem(i))
-            }
-            grey.addSeries(series)
-            val graph = ChartFactory.createXYAreaChart("Frecuencia de colores", "Valor del canal", "Frecuencia", dataset, PlotOrientation.VERTICAL, true, false, false)
-            graph.xyPlot.renderer.setSeriesPaint(channelCount, Color(0,0,0))
-            val chart = ChartFrame("Frecuencias", graph)
-            chart.pack()
-            chart.isVisible = true
-        }
-
-
+    fun update(image: BufferedImage){
+        chart.yAxis.isAutoRanging = false
+        initDataset(image)
     }
 }

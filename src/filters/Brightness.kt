@@ -8,9 +8,7 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.VBox
 import toIntColor
 import tornadofx.add
-import tornadofx.findAll
 import java.awt.image.BufferedImage
-import java.nio.Buffer
 
 class Brightness(val image: BufferedImage) : Filtro(image) {
     var brightness = 0
@@ -19,6 +17,9 @@ class Brightness(val image: BufferedImage) : Filtro(image) {
 
     init {
         val slider = Slider(-255.0, 255.0, 0.0)
+        slider.isShowTickLabels = true
+        slider.isShowTickMarks = true
+
         slider.valueProperty().addListener { _, _, newValue ->
             this@Brightness.brightness = newValue.toInt()
             refresh(this@Brightness.apply())
