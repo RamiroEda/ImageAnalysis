@@ -4,10 +4,16 @@ import javafx.geometry.Insets
 import javafx.scene.layout.VBox
 import java.awt.image.BufferedImage
 
-abstract class Filtro (val immage : BufferedImage) {
+abstract class Filtro (var image : BufferedImage) {
     abstract val title : String
     abstract fun apply() : BufferedImage
-    protected var refresh : (image : BufferedImage) -> Unit = {}
+    private val refresh : ArrayList<(image : BufferedImage) -> Unit> = ArrayList()
+
+    fun refresh(image : BufferedImage){
+        for(lambda in refresh){
+            lambda(image)
+        }
+    }
 
     open val layout = VBox()
 
@@ -17,6 +23,6 @@ abstract class Filtro (val immage : BufferedImage) {
     }
 
     fun onRefresh(refresh : (image : BufferedImage) -> Unit){
-        this.refresh =refresh
+        this.refresh.add(refresh)
     }
 }

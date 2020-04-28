@@ -4,7 +4,7 @@ import getColorChannels
 import toIntColor
 import java.awt.image.BufferedImage
 
-class Negativo (val image: BufferedImage) : Filtro(image) {
+class Negativo (immage : BufferedImage) : Filtro(immage) {
     override val title = "Negativo"
 
     override fun apply(): BufferedImage {

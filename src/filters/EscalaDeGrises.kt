@@ -4,7 +4,7 @@ import getColorChannels
 import toIntColor
 import java.awt.image.BufferedImage
 
-class EscalaDeGrises (private val image: BufferedImage) : Filtro(image) {
+class EscalaDeGrises (immage : BufferedImage) : Filtro(immage) {
     override val title = "Escala de grises"
 
     override fun apply(): BufferedImage {

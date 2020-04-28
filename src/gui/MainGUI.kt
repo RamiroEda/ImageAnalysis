@@ -1,22 +1,16 @@
 package gui
 
+import Convolucion
 import filters.*
 import javafx.geometry.Insets
-import javafx.scene.Scene
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.NumberAxis
 import javafx.scene.control.CheckBox
 import javafx.scene.image.Image
-import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
 import javafx.scene.text.Font
-import open.open
-import open.toBufferedImage
-import open.toImage
+import open.*
+import toInt
 import tornadofx.*
-import java.awt.image.BufferedImage
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
@@ -29,13 +23,18 @@ val filters = arrayOf(
     EscalaDeGrises::class,
     Negativo::class,
     Segmentacion::class,
-    Temperatura::class
+    Temperatura::class,
+    Estiramiento::class,
+    Binarizacion::class,
+    Suavizado::class,
+    Convolucion::class
 )
 
 class MainView : View(){
     override val root = vbox{
         prefWidth = 200.0
         val set = fieldset {
+            spacing = 4.0
             label {
                 text = "Filtros"
                 font = Font.font(20.0)
@@ -72,22 +71,6 @@ class MainView : View(){
         }
     }
 
-    private fun makeCircle(radio : Int) : BufferedImage{
-        val bufferedImage = BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB)
-
-        for(i in 0..360*radio){
-            try {
-                bufferedImage.setRGB(
-                    (sin(i/radio.toFloat())*radio).toInt()+bufferedImage.width/2,
-                    (cos(i/radio.toFloat())*radio).toInt()+bufferedImage.height/2, 0xFF000000.toInt())
-            }catch (e : Exception){}
-        }
-
-
-        return bufferedImage
-    }
-
-
 }
 
 class ImageViewer : Fragment(){
@@ -121,6 +104,27 @@ class ImageViewer : Fragment(){
             }
             if(scope.withHistogram){
                 this@hbox.add(this@ImageViewer.getHistogram())
+            }
+            if(scope.isFilter){
+                hbox {
+                    button("Guardar imagen") {
+                        setOnAction {
+                            saveImage(scope.image!!, this@ImageViewer.title)
+                        }
+                    }
+                    padding = Insets(8.0)
+                    spacing = 4.0
+
+                    val noisePicker = colorpicker {}
+
+                    button("Agregar ruido") {
+                        setOnAction {
+                            val noise = addNoise(scope.image!!, noisePicker.value.toInt())
+                            scope.filter?.refresh(noise)
+                            scope.filter?.image = noise
+                        }
+                    }
+                }
             }
             for (filter in scope.filters){
                 find<ImageViewer>(ImageScope(

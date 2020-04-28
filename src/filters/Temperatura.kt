@@ -8,7 +8,7 @@ import tornadofx.Field
 import tornadofx.add
 import java.awt.image.BufferedImage
 
-class Temperatura(val image: BufferedImage) : Filtro(image) {
+class Temperatura(immage : BufferedImage) : Filtro(immage) {
     override val title = "Temperatura"
     private var temperature = 0
 

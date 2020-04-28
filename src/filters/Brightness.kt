@@ -10,7 +10,7 @@ import toIntColor
 import tornadofx.add
 import java.awt.image.BufferedImage
 
-class Brightness(val image: BufferedImage) : Filtro(image) {
+class Brightness(immage : BufferedImage) : Filtro(immage) {
     var brightness = 0
 
     override val title = "Iluminación"
